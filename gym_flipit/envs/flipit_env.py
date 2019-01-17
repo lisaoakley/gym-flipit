@@ -52,6 +52,12 @@ class FlipitEnv(gym.Env):
 
         return observation, reward, done, info
 
+    def reset(self):
+        self.p0_moves = [0]
+        self.p1_moves = []
+        self.tick = 0
+        self.state = 0
+    
 
         
 
