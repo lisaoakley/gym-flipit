@@ -18,11 +18,12 @@ class Periodic():
 class FlipitEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, duration=100, p0='periodic', p0_configs={'delta':10}, p0_move_cost=10, p1_move_cost=10):
+    def __init__(self, duration=100, p0='periodic', p0_configs={'delta':10}, p0_move_cost=1, p1_move_cost=1):
         # duration only used to bound possible states, is there a better way to do this?
         self.duration = duration
         self.tick = 0
         self.state = 0
+        self.reward_window = 20
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Discrete(self.duration)
         
@@ -33,7 +34,6 @@ class FlipitEnv(gym.Env):
         
         self.p0_move_cost = p0_move_cost
         self.p0_moves = [0, self.p0.first_move()]
-
 
         self.p1_move_cost = p1_move_cost
         self.p1_moves = []
@@ -48,21 +48,27 @@ class FlipitEnv(gym.Env):
         if self.tick == p0_LM:
             self.p0_moves.append(self.p0.move(p0_LM))
         
+        reward = 0
+
         #p1 plays if action is taken
+        p0_LM_known = 0
         if action == 0:
             self.state += 1
         else:
             self.p1_moves.append(self.tick)
-            self.state = self.tick - list(filter(lambda x: x < self.tick, self.p0_moves))[-1]
+            p0_LM_known = list(filter(lambda x: x < self.tick, self.p0_moves))[-1]
+            self.state = self.tick - p0_LM_known
+            gain = self.tick - p0_LM_known
+            moves = len([x for x in self.p1_moves if p0_LM_known <= x and self.tick >= x ])
+            reward = gain - self.p1_move_cost * moves
             
         # state indicates time since opponent's last known move
         observation = self.state
 
-        #TODO: decide reward (local benefit?)
-        # should final reward be total benefit?
-        reward = 0
+
+
         done = self.tick >= self.duration
-        info = {'p0_moves':self.p0_moves, 'p1_moves':self.p1_moves}
+        info = {'p0_moves':self.p0_moves, 'p1_moves':self.p1_moves, 'p0_LM_known':p0_LM_known}
 
         return observation, reward, done, info
 
