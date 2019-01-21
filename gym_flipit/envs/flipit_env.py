@@ -25,11 +25,9 @@ class FlipitEnv(gym.Env):
             self.p0 = exponential.Exponential()
 
         self.p0.config(self.p0_configs)
-        self.p0_move_cost = p0_move_cost
-        self.p0_moves = [0, self.p0.first_move()]
 
-        self.p1_move_cost = p1_move_cost
-        self.p1_moves = [0]
+        self.player_moves = [[0, self.p0.first_move()], [0]]
+        self.player_move_costs = [p0_move_cost, p1_move_cost]
 
 
 
@@ -37,9 +35,9 @@ class FlipitEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         self.tick += 1
         #p0 plays if necessary
-        p0_next_move = self.p0_moves[-1]
+        p0_next_move = self.player_moves[0][-1]
         if self.tick == p0_next_move:
-            self.p0_moves.append(self.p0.move(p0_next_move))
+            self.player_moves[0].append(self.p0.move(p0_next_move))
 
         #p1 plays if action is taken
         p0_LM = 0
@@ -47,34 +45,56 @@ class FlipitEnv(gym.Env):
         if action == 0:
             self.state += 1
         else:
-            p1_LM = self.p1_moves[-1]
-            p0_LM = list(filter(lambda x: x < self.tick, self.p0_moves))[-1]
-            self.p1_moves.append(self.tick)
+            p1_LM = self.player_moves[1][-1]
+            p0_LM = list(filter(lambda x: x < self.tick, self.player_moves[0]))[-1]
+            self.player_moves[1].append(self.tick)
             self.state = self.tick - p0_LM
-            gain = 0 if p0_LM < p1_LM else [x for x in self.p0_moves if x < self.tick and x >= p1_LM][0]
-            reward = gain - self.p1_move_cost
+            gain = 0 if p0_LM < p1_LM else [x for x in self.player_moves[0] if x < self.tick and x >= p1_LM][0]
+            reward = gain - self.player_move_costs[1]
 
         # state indicates time since opponent's last known move
         observation = self.state
 
         done = self.tick >= self.duration
-        info = {'p0_moves':self.p0_moves, 'p1_moves':self.p1_moves, 'p0_LM':p0_LM}
+        info = {'p0_moves':self.player_moves[0], 'p1_moves':self.player_moves[1], 'p0_LM':p0_LM}
 
         return observation, reward, done, info
 
     def reset(self):
         self.p0.config(self.p0_configs)
-        self.p0_moves = [0, self.p0.first_move()]
-        self.p1_moves = [0]
+        self.player_moves = [[0, self.p0.first_move()], [0]]
         self.tick = 0
         self.state = 0
         return self.state
 
+    def render(self, mode='human'):
+        return
+
+    # Some strategies require extra information about the opponent.
     def p0_pdf(self, x):
         return self.p0.pdf(x)
 
     def p0_cdf(self, x):
         return self.p0.cdf(x)
 
-    def render(self, mode='human'):
-        return
+    '''
+    Calculate benefit
+    '''
+    def calc_gain(self):
+        control = 0
+        gain = [0,0]
+        moves = self.player_moves
+        for i in range(self.tick):
+            if i in moves[1-control]:
+                control = 1-control
+            gain[control] += 1
+        return gain
+
+    def calc_total_cost(self):
+        return len(self.player_moves[0])*self.player_move_costs[0], len(self.player_moves[1])*self.player_move_costs[1]
+
+    def calc_benefit(self, player):
+        return self.calc_gain()[player] - self.calc_total_cost()[player]
+
+    def calc_avg_benefit(self, player):
+        return self.calc_benefit(player, self.tick) / self.tick
