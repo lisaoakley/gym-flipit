@@ -2,7 +2,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import random
-from gym_flipit.envs.strategies import periodic, exponential
+from gym_flipit.envs.strategies import periodic, exponential, uniform
 
 class FlipitEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -23,6 +23,8 @@ class FlipitEnv(gym.Env):
             self.p0 = periodic.Periodic()
         if p0 == 'exponential':
             self.p0 = exponential.Exponential()
+        if p0 == 'uniform':
+            self.p0 = uniform.Uniform()
 
         self.p0.config(self.p0_configs)
 
