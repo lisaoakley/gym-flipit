@@ -7,6 +7,7 @@ import numpy as np
 class Exponential():
     def config(self,configs):
         self.lambd = configs['lambd']
+        self.strategy = 'exponential'
 
     def first_move(self):
         return self.move(0)

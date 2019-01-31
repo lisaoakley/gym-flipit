@@ -6,6 +6,7 @@ class Periodic():
     def config(self,configs):
         self.delta = configs['delta']
         self.phase = random.randint(1,self.delta)
+        self.strategy = 'periodic'
 
     def first_move(self):
         return self.phase

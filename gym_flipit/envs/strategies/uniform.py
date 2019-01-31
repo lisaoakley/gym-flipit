@@ -8,6 +8,7 @@ class Uniform():
     def config(self,configs):
         self.delta = configs['d']
         self.u = configs['u']
+        self.strategy = 'uniform'
 
     def first_move(self):
         return self.move(0)
