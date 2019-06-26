@@ -15,7 +15,7 @@ class Periodic():
         return LM + self.delta
 
     def pdf(self, x):
-        return norm(self.delta+1,.2).pdf(x)
+        return norm(self.delta+1,.1).pdf(x)
 
     def cdf(self, tau):
-        return norm(self.delta,.2).cdf(tau)
+        return norm(self.delta,.1).cdf(tau)
