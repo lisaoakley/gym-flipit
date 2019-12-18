@@ -106,7 +106,7 @@ class FlipitEnv(gym.Env):
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self,state_type='opp_LM',rew_type='constant_minus_cost_norm',rew_configs={'val':10,c:'5'},p0='periodic',p0_configs={'delta':10},duration=1000,p0_move_cost=1,p1_move_cost=5):
+    def __init__(self,state_type='opp_LM',rew_type='constant_minus_cost_norm',rew_configs={'val':10,'c':'5'},p0='periodic',p0_configs={'delta':10},duration=1000,p0_move_cost=1,p1_move_cost=5):
         self.config(state_type,rew_type,rew_configs,p0,p0_configs,duration,p0_move_cost,p1_move_cost)
 
     def config(self,state_type,rew_type,rew_configs,p0,p0_configs,duration=100,p0_move_cost=1,p1_move_cost=5):
@@ -179,7 +179,7 @@ class FlipitEnv(gym.Env):
         elif self.rew_type == 'constant_minus_cost':
             return calc_rew.constant_minus_cost(self.found_FM,self.moved(1),self.get_LM(0),self.player_moves[1],self.player_move_costs[1],self.rew_configs['val'],self.tick)
         elif self.rew_type == 'constant_minus_cost_norm':
-            return calc_rew.constant_minus_cost(self.found_FM,self.moved(1),self.get_LM(0),self.player_moves[1],self.player_move_costs[1],self.rew_configs['val'],self.tick,self.rew_configs['c'])
+            return calc_rew.constant_minus_cost_norm(self.found_FM,self.moved(1),self.get_LM(0),self.player_moves[1],self.player_move_costs[1],self.rew_configs['val'],self.tick,self.rew_configs['c'])
         elif self.rew_type == 'exp_cost':
             return calc_rew.exp_cost(self.found_FM,self.moved(1),self.get_LM(0),self.player_moves[1],self.player_move_costs[1],self.rew_configs['val'],self.tick)
         elif self.rew_type == 'LM_avg':
